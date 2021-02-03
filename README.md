@@ -16,6 +16,4 @@ _Live Example: https://gatsby.now-examples.now.sh_
 
 To get started with Gatsby on Vercel, you can use the [Gatsby CLI](https://www.gatsbyjs.org/docs/gatsby-cli/) to initialize the project:
 
-```shell
-$ gatsby new gatsby-site
-```
+
