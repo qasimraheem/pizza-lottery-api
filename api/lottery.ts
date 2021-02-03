@@ -1,46 +1,74 @@
-import { NowRequest, NowResponse } from '@now/node';
-import Web3 from 'web3'
+import { NowRequest, NowResponse, NowRequestQuery } from "@vercel/node";
+import {
+  computeLotteries,
+  getIssueIndex,
+  getSingleLotteryBatch,
+  Lottery,
+  SingleLotteryReturn,
+} from "../utils/lotteryUtils";
 
-const lotteryABI = require('../contracts/lottery')
-
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    "https://bsc-dataseed.binance.org"
-  )
-);
-
-const lottery = async (history:number) => {
-  const lottery = new web3.eth.Contract(lotteryABI, '0xbBC1779d0036928F8466c72Cd6b56581C2026bf7');
-
-  const issueIndex = await lottery.methods.issueIndex().call()
-
-  let finalNumbers = []
-  for (let i = issueIndex - 1; i >= 0 && issueIndex - i < history; i--) {
-    let numbers1 = []
-    let numbers2 = []
-    numbers1.push(await lottery.methods.historyNumbers(i, 0).call())
-    numbers1.push(await lottery.methods.historyNumbers(i, 1).call())
-    numbers1.push(await lottery.methods.historyNumbers(i, 2).call())
-    numbers1.push(await lottery.methods.historyNumbers(i, 3).call())
-
-    numbers2.push(await lottery.methods.historyAmount(i, 0).call())
-    numbers2.push(await lottery.methods.historyAmount(i, 1).call())
-    numbers2.push(await lottery.methods.historyAmount(i, 2).call())
-    numbers2.push(await lottery.methods.historyAmount(i, 3).call())
-
-    numbers2 = numbers2.map(n => parseInt(n)/1e18)
-
-    finalNumbers.push({
-      issueIndex: i,
-      numbers1,
-      numbers2
-    })
+export const lottery = async (
+  pageSize?: number,
+  page: number = 0
+): Promise<{
+  totalPage?: number;
+  totalItems?: number;
+  lotteries?: Array<Lottery>;
+  currentPage?: number;
+  error?: string;
+  errorMessage?: string;
+}> => {
+  const issueIndex = await getIssueIndex();
+  if (typeof issueIndex !== "number") {
+    return issueIndex;
   }
-  return finalNumbers
-}
+
+  const finalNumbersProm: Array<SingleLotteryReturn> = [];
+  const totalPage = pageSize ? Math.ceil(issueIndex / pageSize - 1) : 0;
+
+  if (typeof pageSize !== "undefined") {
+    if (pageSize * page > issueIndex) {
+      return {
+        error: "page out of range",
+        errorMessage: `The requested page with the requested pageSize is out of range. The last page is: ${totalPage}`,
+        totalPage,
+        totalItems: issueIndex,
+      };
+    }
+
+    const offset = page * pageSize;
+    const start = issueIndex - (offset + 1);
+    const end = start - pageSize;
+
+    for (let i = start; i >= 0 && i > end; i--) {
+      finalNumbersProm.push(getSingleLotteryBatch(i));
+    }
+  } else {
+    for (let i = issueIndex - 1; i >= 0; i--) {
+      finalNumbersProm.push(getSingleLotteryBatch(i));
+    }
+  }
+  const finalNumbers = await computeLotteries(finalNumbersProm);
+
+  return {
+    totalPage: totalPage,
+    totalItems: issueIndex - 1,
+    lotteries: finalNumbers,
+    currentPage: page,
+  };
+};
+
+export const handleAPICall = async (query: NowRequestQuery) => {
+  const { pageSize, page } = query;
+
+  const data = await lottery(
+    typeof pageSize !== "undefined" ? Number(pageSize) : undefined,
+    typeof page !== "undefined" ? Number(page) : undefined
+  );
+  return data;
+};
 
 export default async (_req: NowRequest, res: NowResponse) => {
-  const { history = 10 } = _req.query
-  const data = await lottery(history)
+  const data = await handleAPICall(_req.query);
   res.status(200).send(data);
 };
