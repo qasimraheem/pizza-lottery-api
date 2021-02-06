@@ -37,7 +37,14 @@ export interface LotteryHistory {
   burned: number;
 }
 
-
+/**
+ * Request all Lottery Methods to get the Lottery Data
+ * This Method is not async and is not waiting
+ * This will improve the performance because all requests can be created at almost the same time
+ * This is the Batch version of the function. This means the web3 batchrequest functionality is used to batch the requests to the bsc network
+ * This Batch functionality prevent the api from crashing because of too many requests against the contract.
+ * @param index
+ */
 export const getSingleLotteryBatch = (index: number): SingleLotteryReturn => {
   const lotteryContract = getContract(lotteryABI, "0xbBC1779d0036928F8466c72Cd6b56581C2026bf7");
   const batch = new PromisifyBatchRequest<string>();
@@ -62,7 +69,14 @@ export const getSingleLotteryBatch = (index: number): SingleLotteryReturn => {
   };
 };
 
-
+/**
+ * This function will create the LotteryItem and will resolve the promises
+ * At the time the promises are awaited the request should already be done
+ * @param numbers1Prom Promise with all numbers1 numbers
+ * @param numbers2Prom Promise with all numbers2 numbers
+ * @param index
+ * @param finalNumbers
+ */
 const createLotteryItem = async (
   numbers1Prom: Promise<[string, string, string, string]>,
   numbers2Prom: Promise<[string, string, string, string]>,
@@ -113,7 +127,13 @@ export const getAllLotteries = (issueIndex: number): Promise<Array<Lottery>> => 
   return computeLotteries(finalNumbersProm);
 };
 
-
+/**
+ * It happens that cloudfront rejects request.
+ * To prevent missing lottery Items this retry function requests the lotteryItem again.
+ * @param index
+ * @param finalNumbers
+ * @param retries number of retries
+ */
 const retry = async (index: number, finalNumbers: Array<Lottery>, retries: number) => {
   let retrySuccess = false;
   let retryCount = 0;

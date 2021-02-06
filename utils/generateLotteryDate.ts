@@ -1,4 +1,4 @@
-export const firstLottery = new Date(Date.UTC(2020, 9, 23, 14, 0, 0, 0)); 
+export const firstLottery = new Date(Date.UTC(2020, 9, 23, 14, 0, 0, 0)); // Time of the first Offical Lottery; There are 3 Tests lotteries
 export const numberOfTestLotteries = 3;
 const hour = 60 * 60 * 1000;
 export const generateLotteryDate = (issueIndex: number): Date => {
