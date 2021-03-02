@@ -40,7 +40,7 @@ export const lottery = async (
     lotteryNumbers: numbers1.map((x) => Number(x)),
     poolSize: ceilDecimal(poolSize, 2),
     burned: ceilDecimal((poolSize / 100) * ratesToUse.burn, 2),
-    contractLink: "https://bscscan.com/address/0xbbc1779d0036928f8466c72cd6b56581c2026bf7",
+    contractLink: "https://bscscan.com/address/0x7e9189C9F263E788c8D5DF80c1Ca1AcbC8059C75",
     jackpotTicket: numbers2[1] / 10,
     match2Ticket: numbers2[3] / 10,
     match3Ticket: numbers2[2] / 10,

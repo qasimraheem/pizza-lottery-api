@@ -46,7 +46,7 @@ export interface LotteryHistory {
  * @param index
  */
 export const getSingleLotteryBatch = (index: number): SingleLotteryReturn => {
-  const lotteryContract = getContract(lotteryABI, "0xbBC1779d0036928F8466c72Cd6b56581C2026bf7");
+  const lotteryContract = getContract(lotteryABI, "0x7e9189C9F263E788c8D5DF80c1Ca1AcbC8059C75");
   const batch = new PromisifyBatchRequest<string>();
   const batch2 = new PromisifyBatchRequest<string>();
   [
@@ -95,7 +95,7 @@ const createLotteryItem = async (
 };
 
 export const getIssueIndex = async (): Promise<number | { error: string; errorMessage: string }> => {
-  const lotteryContract = getContract(lotteryABI, "0xbBC1779d0036928F8466c72Cd6b56581C2026bf7");
+  const lotteryContract = getContract(lotteryABI, "0x7e9189C9F263E788c8D5DF80c1Ca1AcbC8059C75");
   let issueIndex: number | undefined = undefined;
   let retryIsseIndex = 0;
   while (typeof issueIndex === "undefined" && retryIsseIndex <= 3) {
